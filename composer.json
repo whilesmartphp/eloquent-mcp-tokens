@@ -1,0 +1,52 @@
+{
+    "name": "whilesmart/eloquent-mcp-tokens",
+    "description": "Owner-scoped MCP tokens, route restriction and MCP server mounting for Laravel applications on laravel/mcp.",
+    "type": "library",
+    "version": "1.0.0",
+    "license": "MIT",
+    "authors": [
+        { "name": "Whilesmart Team" }
+    ],
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^12.41.1|^13.0",
+        "laravel/mcp": "^1.3",
+        "laravel/sanctum": "^4.0",
+        "whilesmart/eloquent-owner-access": "^1.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.0",
+        "laravel/pint": "^1.22",
+        "fakerphp/faker": "^1.24"
+    },
+    "config": {
+        "platform": {
+            "php": "8.2"
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Whilesmart\\McpTokens\\": "src/",
+            "Whilesmart\\McpTokens\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Whilesmart\\McpTokens\\McpTokensServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/testbench package:test",
+        "pint": ["./vendor/bin/pint"],
+        "pint:test": ["./vendor/bin/pint --test"]
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
