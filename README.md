@@ -52,11 +52,13 @@ route is the package's own `/mcp-token`, the MCP endpoint, or listed in `restric
     'allow' => [
         'GET api/v1/cases' => null,
         'POST api/v1/cases' => 'case_created', // recorded as activity on success
+        'POST api/v1/keys' => ['action' => 'key_created', 'subject' => 'data.client.id'],
     ],
 ],
 ```
 
-Keys are the HTTP method and the route URI pattern. Normal sessions are never restricted.
+Keys are the HTTP method and the route URI pattern. The recorded subject is the response's `data.id`
+or `id`, unless the entry names another path with `subject`. Normal sessions are never restricted.
 
 Bind a `RequestScoper` to pin an allowed request to the token's owner, for example by setting the
 tenant header your routes read, or to refuse it by returning a response.
