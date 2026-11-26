@@ -30,6 +30,17 @@ class RestrictMcpTokensTest extends TestCase
         $this->assertNotNull($activity['last_used_at']);
     }
 
+    public function test_an_allowlist_entry_can_name_where_the_subject_id_is(): void
+    {
+        [, $team, $session] = $this->signIn();
+        $token = $this->issue($session, $team)->json('data');
+
+        $this->bearer($token['token'])->postJson('api/v1/keys')->assertCreated();
+
+        $this->bearer($session)->getJson('api/mcp-tokens/'.$token['id'].'/activity')
+            ->assertJsonPath('data.counts', ['key_created' => 1])->assertJsonPath('data.events.0.subject_id', 'cl_7');
+    }
+
     public function test_a_token_stops_working_once_its_user_loses_access_to_the_owner(): void
     {
         [, $team, $session] = $this->signIn();
