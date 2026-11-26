@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Tests\Fixtures\DenyAllAuthorizer;
 use Tests\TestCase;
 use Whilesmart\McpTokens\Contracts\RequestScoper;
+use Whilesmart\McpTokens\Http\Middleware\RestrictMcpTokens;
 use Whilesmart\McpTokens\Models\McpToken;
 use Whilesmart\OwnerAccess\Contracts\OwnerAuthorizer;
 
@@ -49,6 +51,27 @@ class RestrictMcpTokensTest extends TestCase
 
         $this->bearer($token)->getJson('api/v1/cases')->assertForbidden()->assertJsonPath('errors.code', 'mcp_token_owner_access_lost');
         $this->bearer($token)->getJson('api/mcp-token')->assertForbidden();
+    }
+
+    public function test_a_first_request_without_a_user_resolver_is_checked_against_the_guard_user(): void
+    {
+        [, $team, $session] = $this->signIn();
+        $token = $this->issue($session, $team)->json('data.token');
+        $this->app['auth']->forgetGuards();
+        $request = Request::create('api/v1/cases', 'GET', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$token, 'HTTP_ACCEPT' => 'application/json']);
+        $this->app->instance('request', $request);
+        $request->setUserResolver(fn () => null);
+        $this->app->instance(OwnerAuthorizer::class, new class extends DenyAllAuthorizer
+        {
+            public function authorize(?Authenticatable $user, string $ownerType, mixed $ownerId): bool
+            {
+                return $user !== null;
+            }
+        });
+
+        $response = $this->app->make(RestrictMcpTokens::class)->handle($request, fn () => response()->json(['passed' => true]));
+
+        $this->assertSame(200, $response->getStatusCode(), $response->getContent());
     }
 
     public function test_a_normal_session_is_not_restricted(): void
