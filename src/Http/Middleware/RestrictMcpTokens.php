@@ -16,7 +16,9 @@ use Whilesmart\OwnerAccess\Contracts\OwnerAuthorizer;
 /**
  * Refuses an MCP token everywhere except the package's own routes, the MCP endpoint and the host's
  * allowlist. It runs as global middleware so routes registered without a middleware group are covered,
- * which means it matches the route itself rather than reading the request's route.
+ * which means it matches the route itself rather than reading the request's route. For the same
+ * reason the user comes from the guard: the request's user resolver is only attached when the router
+ * rebinds the request, after global middleware has run.
  */
 class RestrictMcpTokens
 {
@@ -26,11 +28,12 @@ class RestrictMcpTokens
 
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->bearerToken() || ! ($token = $this->tokens->current(Auth::guard('sanctum')->user()))) {
+        $user = $request->bearerToken() ? Auth::guard('sanctum')->user() : null;
+        if (! $user || ! ($token = $this->tokens->current($user))) {
             return $next($request);
         }
 
-        if (! app(OwnerAuthorizer::class)->authorize($request->user('sanctum'), $token->owner_type, $token->owner_id)) {
+        if (! app(OwnerAuthorizer::class)->authorize($user, $token->owner_type, $token->owner_id)) {
             return $this->refuse('The token\'s user can no longer access its owner.', 'mcp_token_owner_access_lost');
         }
 
