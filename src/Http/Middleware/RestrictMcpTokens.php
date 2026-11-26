@@ -51,9 +51,12 @@ class RestrictMcpTokens
 
         $response = $next($request);
 
-        if (($action = $allow[$key] ?? null) && $response->isSuccessful() && $response instanceof JsonResponse) {
+        $entry = $allow[$key] ?? null;
+        $action = is_array($entry) ? ($entry['action'] ?? null) : $entry;
+        if ($action && $response->isSuccessful() && $response instanceof JsonResponse) {
             $body = $response->getData(true);
-            $this->tokens->record($token, $action, $body['data']['id'] ?? $body['id'] ?? null);
+            $subject = is_array($entry) && isset($entry['subject']) ? data_get($body, $entry['subject']) : ($body['data']['id'] ?? $body['id'] ?? null);
+            $this->tokens->record($token, $action, is_scalar($subject) ? $subject : null);
         }
 
         return $response;

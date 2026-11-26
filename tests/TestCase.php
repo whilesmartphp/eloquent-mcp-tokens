@@ -40,7 +40,7 @@ abstract class TestCase extends BaseTestCase
         $app['config']->set('cache.default', 'array');
         $app['config']->set('mcp-tokens.route_middleware', ['api', 'auth:sanctum']);
         $app['config']->set('mcp-tokens.scopes', ['read', 'write']);
-        $app['config']->set('mcp-tokens.restriction.allow', ['GET api/v1/cases' => null, 'POST api/v1/cases' => 'case_created']);
+        $app['config']->set('mcp-tokens.restriction.allow', ['GET api/v1/cases' => null, 'POST api/v1/cases' => 'case_created', 'POST api/v1/keys' => ['action' => 'key_created', 'subject' => 'data.client.id']]);
         $app['config']->set('mcp-tokens.server.enabled', true);
         $app['config']->set('mcp-tokens.server.class', TestServer::class);
     }
@@ -50,6 +50,7 @@ abstract class TestCase extends BaseTestCase
         $router->middleware('auth:sanctum')->group(function ($router) {
             $router->get('api/v1/cases', fn () => response()->json(['data' => [], 'tenant' => request()->header('X-Tenant')]));
             $router->post('api/v1/cases', fn () => response()->json(['id' => 42], 201));
+            $router->post('api/v1/keys', fn () => response()->json(['data' => ['client' => ['id' => 'cl_7'], 'secret' => 'shown-once']], 201));
             $router->get('api/v1/billing', fn () => response()->json(['data' => 'billing']));
         });
     }

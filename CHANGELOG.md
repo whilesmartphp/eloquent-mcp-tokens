@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.0] - 2026-11-26
+
+- An allowlist entry can name where the activity subject id is in the response.
+
 ## [1.0.0] - 2026-11-26
 
 - Owner-scoped MCP tokens on Sanctum: create, list, revoke, read activity and read the calling token.
